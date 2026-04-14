@@ -8,7 +8,7 @@ const Inventory = require('./models/Inventory');
 const Wallet = require('./models/Wallet');
 const Order = require('./models/Order');
 
-const mongoURI = process.env.MONGO_URI || 'mongodb://medialiftadvisor_db_user:ZTyxx80DLkzTf2g5@ac-3ormxhn-shard-00-00.ab5rsbm.mongodb.net:27017,ac-3ormxhn-shard-00-01.ab5rsbm.mongodb.net:27017,ac-3ormxhn-shard-00-02.ab5rsbm.mongodb.net:27017/?ssl=true&replicaSet=atlas-tt5ccd-shard-0&authSource=admin&appName=mla';
+const mongoURI = process.env.MONGO_URI || 'mongodb://medialiftadvisor_db_user:ZTyxx80DLkzTf2g5@ac-3ormxhn-shard-00-00.ab5rsbm.mongodb.net:27017,ac-3ormxhn-shard-00-01.ab5rsbm.mongodb.net:27017,ac-3ormxhn-shard-00-02.ab5rsbm.mongodb.net:27017/?ssl=true&replicaSet=atlas-tt5ccd-shard-0&authSource=admin&appName=test';
 
 async function seed() {
   await mongoose.connect(mongoURI);
