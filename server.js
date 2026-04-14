@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// Paths check (Dhyan rakhein ki folders ke naam exact yahi hain)
 const usersRouter = require('./routes/users');
 const deliveryPartnersRouter = require('./routes/deliveryPartners');
 const adminsRouter = require('./routes/admins');
@@ -14,50 +15,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 1. Pehle MONGO_URI define hona chahiye
+const mongoURI = process.env.MONGO_URI;
 
+// 2. Connection Logic (Cleaned up)
 const cached = global.mongoose || (global.mongoose = { conn: null, promise: null });
 
 async function connectDB() {
-  if (cached.conn) return cached.conn;
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(mongoURI).then((mongooseInstance) => {
-      return mongooseInstance;
-    });
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-// server.js mein connection wala hissa aise likhein:
+    if (cached.conn) return cached.conn;
 
-const mongoURI = process.env.MONGO_URI;
-
-// Debugging Log: Ye check karne ke liye ki Vercel ko link mil bhi raha hai ya nahi
-console.log("Checking MONGO_URI setup...");
-if (!mongoURI) {
-    console.error("❌ ERROR: MONGO_URI is undefined! Vercel settings check karein.");
-} else {
-    // Link ke shuruat ke kuch akshar print karega bina password dikhaye
-    console.log("✅ MONGO_URI found. Starting with:", mongoURI.substring(0, 15));
-}
-
-mongoose.connect(mongoURI)
-  .then(() => {
-    console.log("🚀 SUCCESS: MongoDB Connected to Sevzo Database");
-  })
-  .catch((err) => {
-    console.error("❌ CONNECTION FAILED:");
-    console.error("Error Name:", err.name);
-    console.error("Error Message:", err.message); // Yahan asli wajah likhi aayegi
-    
-    if (err.message.includes("authentication failed")) {
-        console.error("👉 Advice: Password galat hai ya username sahi nahi hai.");
-    } else if (err.message.includes("buffering timed out")) {
-        console.error("👉 Advice: IP Whitelist (0.0.0.0/0) ka chakkar hai.");
+    if (!mongoURI) {
+        console.error("❌ ERROR: MONGO_URI is missing in Vercel settings!");
+        throw new Error("MONGO_URI is undefined");
     }
-  });
-connectDB()
-  .then(() => console.log('MongoDB Database Connected Successfully! 🟢'))
-  .catch((err) => console.log('MongoDB Connection Error: 🔴', err));
+
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(mongoURI).then((mongooseInstance) => {
+            console.log("🚀 SUCCESS: MongoDB Connected Successfully");
+            return mongooseInstance;
+        }).catch((err) => {
+            console.error("❌ MongoDB Connection Error:", err.message);
+            throw err;
+        });
+    }
+    cached.conn = await cached.promise;
+    return cached.conn;
+}
+
+// 3. Routes setup se pehle DB call
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        res.status(500).json({ error: "Database connection failed", details: err.message });
+    }
+});
 
 app.use('/api/users', usersRouter);
 app.use('/api/delivery-partners', deliveryPartnersRouter);
@@ -67,14 +60,15 @@ app.use('/api/inventory', inventoryRouter);
 app.use('/api/wallets', walletsRouter);
 
 app.get('/', (req, res) => {
-  res.send('Sevzo Backend is Live & Running! 🚀');
+    res.send('Sevzo Backend is Live & Running! 🚀');
 });
 
+// Port settings
+const port = process.env.PORT || 3000;
 if (require.main === module) {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Sevzo Backend listening on port ${port}`);
-  });
+    app.listen(port, () => {
+        console.log(`Sevzo Backend listening on port ${port}`);
+    });
 }
 
 module.exports = app;
