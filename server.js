@@ -28,7 +28,34 @@ async function connectDB() {
   cached.conn = await cached.promise;
   return cached.conn;
 }
+// server.js mein connection wala hissa aise likhein:
 
+const mongoURI = process.env.MONGO_URI;
+
+// Debugging Log: Ye check karne ke liye ki Vercel ko link mil bhi raha hai ya nahi
+console.log("Checking MONGO_URI setup...");
+if (!mongoURI) {
+    console.error("❌ ERROR: MONGO_URI is undefined! Vercel settings check karein.");
+} else {
+    // Link ke shuruat ke kuch akshar print karega bina password dikhaye
+    console.log("✅ MONGO_URI found. Starting with:", mongoURI.substring(0, 15));
+}
+
+mongoose.connect(mongoURI)
+  .then(() => {
+    console.log("🚀 SUCCESS: MongoDB Connected to Sevzo Database");
+  })
+  .catch((err) => {
+    console.error("❌ CONNECTION FAILED:");
+    console.error("Error Name:", err.name);
+    console.error("Error Message:", err.message); // Yahan asli wajah likhi aayegi
+    
+    if (err.message.includes("authentication failed")) {
+        console.error("👉 Advice: Password galat hai ya username sahi nahi hai.");
+    } else if (err.message.includes("buffering timed out")) {
+        console.error("👉 Advice: IP Whitelist (0.0.0.0/0) ka chakkar hai.");
+    }
+  });
 connectDB()
   .then(() => console.log('MongoDB Database Connected Successfully! 🟢'))
   .catch((err) => console.log('MongoDB Connection Error: 🔴', err));
