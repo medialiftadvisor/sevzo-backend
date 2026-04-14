@@ -3,12 +3,12 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const usersRouter = require('../routes/users');
-const deliveryPartnersRouter = require('../routes/deliveryPartners');
-const adminsRouter = require('../routes/admins');
-const ordersRouter = require('../routes/orders');
-const inventoryRouter = require('../routes/inventory');
-const walletsRouter = require('../routes/wallets');
+const usersRouter = require('./routes/users');
+const deliveryPartnersRouter = require('./routes/deliveryPartners');
+const adminsRouter = require('./routes/admins');
+const ordersRouter = require('./routes/orders');
+const inventoryRouter = require('./routes/inventory');
+const walletsRouter = require('./routes/wallets');
 
 const app = express();
 app.use(cors());
@@ -21,10 +21,7 @@ const cached = global.mongoose || (global.mongoose = { conn: null, promise: null
 async function connectDB() {
   if (cached.conn) return cached.conn;
   if (!cached.promise) {
-    cached.promise = mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    }).then((mongooseInstance) => {
+    cached.promise = mongoose.connect(mongoURI).then((mongooseInstance) => {
       return mongooseInstance;
     });
   }
