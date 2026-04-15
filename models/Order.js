@@ -17,6 +17,8 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['cash', 'card', 'wallet', 'upi', 'online'], default: 'cash' },
   paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
   orderStatus: { type: String, enum: ['created', 'confirmed', 'picked', 'in_transit', 'delivered', 'cancelled'], default: 'created' },
+  deliveryPin: { type: String, trim: true },
+  deliveryConfirmed: { type: Boolean, default: false },
   shippingAddress: {
     line1: { type: String },
     line2: { type: String },

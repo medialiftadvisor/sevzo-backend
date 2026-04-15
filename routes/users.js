@@ -25,9 +25,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
-    const user = new User(req.body);
+    const payload = { ...req.body, email: req.body.email?.toLowerCase()?.trim() };
+    const user = new User(payload);
     await user.save();
     res.status(201).json(user);
   } catch (error) {

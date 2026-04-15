@@ -4,10 +4,11 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const { userId, orderNumber, status } = req.query;
+    const { userId, deliveryPartner, orderNumber, status } = req.query;
     const query = {};
 
     if (userId) query.user = userId;
+    if (deliveryPartner) query.deliveryPartner = deliveryPartner;
     if (orderNumber) query.orderNumber = orderNumber;
     if (status) query.orderStatus = status;
 

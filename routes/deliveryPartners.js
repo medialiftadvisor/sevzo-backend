@@ -4,7 +4,12 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const partners = await DeliveryPartner.find().populate('wallet');
+    const { email } = req.query;
+    const query = {};
+    if (email) {
+      query.email = email.toLowerCase().trim();
+    }
+    const partners = await DeliveryPartner.find(query).populate('wallet');
     res.json(partners);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -21,9 +26,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const partner = await DeliveryPartner.findOne({ email: email.toLowerCase().trim() });
+    if (!partner || partner.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    return res.json(partner);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
-    const partner = new DeliveryPartner(req.body);
+    const payload = { ...req.body, email: req.body.email?.toLowerCase()?.trim() };
+    const partner = new DeliveryPartner(payload);
     await partner.save();
     res.status(201).json(partner);
   } catch (error) {
