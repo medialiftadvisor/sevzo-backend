@@ -1,5 +1,6 @@
 const express = require('express');
 const DeliveryPartner = require('../models/DeliveryPartner');
+const Wallet = require('../models/Wallet');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -33,7 +34,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const partner = await DeliveryPartner.findOne({ email: email.toLowerCase().trim() });
+    const partner = await DeliveryPartner.findOne({ email: email.toLowerCase().trim() }).populate('wallet');
     if (!partner || partner.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
@@ -49,7 +50,15 @@ router.post('/', async (req, res) => {
     const payload = { ...req.body, email: req.body.email?.toLowerCase()?.trim() };
     const partner = new DeliveryPartner(payload);
     await partner.save();
-    res.status(201).json(partner);
+
+    const wallet = new Wallet({ ownerType: 'DeliveryPartner', ownerId: partner._id, balance: 0, currency: 'INR' });
+    await wallet.save();
+
+    partner.wallet = wallet._id;
+    await partner.save();
+
+    const savedPartner = await DeliveryPartner.findById(partner._id).populate('wallet');
+    res.status(201).json(savedPartner);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
